@@ -8,9 +8,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const reservationId = params.id
-
   try {
+    const reservationId = params.id
+
     await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: reservationId },
@@ -20,7 +20,6 @@ export async function POST(
         throw new Error('Cannot release')
       }
 
-      // THIS IS THE KEY - Only decrease reserved, not total
       await tx.stock.update({
         where: {
           productId_warehouseId: {
