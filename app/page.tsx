@@ -146,8 +146,14 @@ export default function Home() {
                 </div>
                 <div style={styles.productBody}>
                   {product.warehouses.map((wh) => (
-                    <div key={wh.warehouseId}>
-                      {/* Total vs Reserved Stock Display */}
+                    <div key={wh.warehouseId} style={styles.warehouseCard}>
+                      {/* Warehouse Name First */}
+                      <div style={styles.warehouseHeader}>
+                        <span style={styles.warehouseIcon}>🏪</span>
+                        <span style={styles.warehouseName}>{wh.warehouseName}</span>
+                      </div>
+                      
+                      {/* Stock Breakdown Box - Under warehouse name */}
                       <div style={styles.stockInfo}>
                         <div style={styles.stockTitle}>📊 Stock Breakdown: Total = Available + Reserved</div>
                         <div style={styles.stockRow}>
@@ -167,10 +173,8 @@ export default function Home() {
                         </div>
                       </div>
                       
-                      <div style={styles.warehouseRow}>
-                        <div>
-                          <p style={styles.warehouseName}>{wh.warehouseName}</p>
-                        </div>
+                      {/* Reserve Button */}
+                      <div style={styles.buttonContainer}>
                         <button
                           onClick={() => handleReserve(product.id, wh.warehouseId)}
                           disabled={wh.availableStock === 0 || reserving === `${product.id}-${wh.warehouseId}`}
@@ -407,26 +411,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '4px',
   },
   productBody: {
-    padding: '16px 0',
+    padding: '16px',
+  },
+  warehouseCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    marginBottom: '16px',
+    border: '1px solid #e5e7eb',
+    overflow: 'hidden',
+  },
+  warehouseHeader: {
+    backgroundColor: '#f8fafc',
+    padding: '12px 16px',
+    borderBottom: '1px solid #e5e7eb',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  warehouseIcon: {
+    fontSize: '18px',
+  },
+  warehouseName: {
+    fontWeight: '600',
+    fontSize: '15px',
+    color: '#1e293b',
   },
   stockInfo: {
     backgroundColor: '#f1f5f9',
-    padding: '12px 16px',
-    margin: '0 16px 12px 16px',
+    padding: '14px 16px',
+    margin: '12px 16px',
     borderRadius: '10px',
   },
   stockTitle: {
     fontSize: '11px',
     fontWeight: '600',
     color: '#475569',
-    marginBottom: '8px',
+    marginBottom: '10px',
     textAlign: 'center' as 'center',
   },
   stockRow: {
     display: 'flex',
     justifyContent: 'space-between',
     fontSize: '13px',
-    padding: '4px 0',
+    padding: '5px 0',
   },
   stockValue: {
     fontWeight: '600',
@@ -447,27 +474,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '8px',
     paddingTop: '6px',
     borderTop: '1px dashed #cbd5e1',
-  },
-  warehouseRow: {
-    padding: '12px 24px 20px 24px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  warehouseName: {
     fontWeight: '500',
-    margin: 0,
-    fontSize: '14px',
+  },
+  buttonContainer: {
+    padding: '0 16px 16px 16px',
   },
   reserveButton: {
+    width: '100%',
     backgroundColor: '#14b8a6',
     color: 'white',
     border: 'none',
-    padding: '8px 18px',
+    padding: '10px',
     borderRadius: '8px',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
+    transition: 'background-color 0.2s',
   },
   buttonDisabled: {
     backgroundColor: '#9ca3af',
