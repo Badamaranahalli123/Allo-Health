@@ -8,37 +8,41 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { productId, warehouseId, quantity } = body
 
+  console.log('🔵 Reserve request:', { productId, warehouseId, quantity })
+
   if (!productId || !warehouseId || !quantity) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Find the stock record
-      const stock = await tx.stock.findUnique({
-        where: { 
-          productId_warehouseId: { 
-            productId, 
-            warehouseId 
-          } 
-        },
-      })
+    // Find the stock - using findFirst to be safe
+    const stock = await prisma.stock.findFirst({
+      where: {
+        productId: productId,
+        warehouseId: warehouseId,
+      },
+    })
 
-      if (!stock) {
-        throw new Error('Stock not found')
-      }
+    console.log('📊 Found stock:', stock)
 
-      const available = stock.total - stock.reserved
-      
-      if (available < quantity) {
-        throw new Error('Not enough stock')
-      }
+    if (!stock) {
+      return NextResponse.json({ error: 'Stock not found' }, { status: 404 })
+    }
 
+    const available = stock.total - stock.reserved
+    console.log('📊 Available:', available, 'Requested:', quantity)
+
+    if (available < quantity) {
+      return NextResponse.json({ error: 'Not enough stock' }, { status: 409 })
+    }
+
+    const expiresAt = new Date()
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10)
+
+    // Use transaction to update both reservation and stock
+    const reservation = await prisma.$transaction(async (tx) => {
       // Create reservation
-      const expiresAt = new Date()
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10)
-
-      const reservation = await tx.reservation.create({
+      const newReservation = await tx.reservation.create({
         data: {
           productId,
           warehouseId,
@@ -48,24 +52,20 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // THIS IS THE KEY LINE - Update reserved stock
-      await tx.stock.update({
+      // Update reserved stock
+      const updatedStock = await tx.stock.update({
         where: { id: stock.id },
-        data: { 
-          reserved: { 
-            increment: quantity 
-          } 
-        },
+        data: { reserved: { increment: quantity } },
       })
 
-      return reservation
+      console.log('📊 Updated stock:', updatedStock)
+
+      return newReservation
     })
 
-    return NextResponse.json(result, { status: 201 })
+    return NextResponse.json(reservation, { status: 201 })
   } catch (error: any) {
-    if (error.message === 'Not enough stock') {
-      return NextResponse.json({ error: 'Stock unavailable' }, { status: 409 })
-    }
+    console.error('❌ Error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
