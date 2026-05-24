@@ -42,7 +42,6 @@ export async function POST(
         where: { id: stock.id },
         data: {
           total: { decrement: reservation.quantity },
-          reserved: { increment: reservation.quantity },
         },
       })
 
