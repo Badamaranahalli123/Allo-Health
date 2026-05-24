@@ -1,51 +1,56 @@
-export async function POST(req: NextRequest) {
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const body = await req.json()
-    const { productId, warehouseId, quantity } = body
+    const reservationId = params.id
 
-    const result = await prisma.$transaction(async (tx) => {
-      const stock = await tx.stock.findFirst({
-        where: { productId, warehouseId },
-      })
+    console.log('🔵 Confirm request for:', reservationId)
 
-      if (!stock) {
-        throw new Error('Stock not found')
-      }
-
-      const available = stock.total - stock.reserved
-      if (available < quantity) {
-        throw new Error('Not enough stock')
-      }
-
-      const expiresAt = new Date()
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10)
-
-      const reservation = await tx.reservation.create({
-        data: {
-          productId,
-          warehouseId,
-          quantity,
-          expiresAt,
-          status: 'pending',
-        },
-      })
-
-      // ✅ THIS INCREMENTS RESERVED BY 1
-      await tx.stock.update({
-        where: { id: stock.id },
-        data: { 
-          reserved: { increment: quantity }
-        },
-      })
-
-      return reservation
+    // Get reservation
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
     })
 
-    return NextResponse.json(result, { status: 201 })
-  } catch (error: any) {
-    if (error.message === 'Not enough stock') {
-      return NextResponse.json({ error: 'Stock unavailable' }, { status: 409 })
+    console.log('📊 Reservation found:', reservation)
+
+    if (!reservation) {
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
+
+    if (reservation.status !== 'pending') {
+      return NextResponse.json({ error: 'Reservation already processed' }, { status: 400 })
+    }
+
+    if (new Date() > new Date(reservation.expiresAt)) {
+      return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
+    }
+
+    // Update stock - set reserved to 0 using raw SQL
+    await prisma.$executeRaw`
+      UPDATE "Stock" 
+      SET reserved = 0 
+      WHERE "productId" = ${reservation.productId} 
+      AND "warehouseId" = ${reservation.warehouseId}
+    `
+
+    // Update reservation status
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: { status: 'confirmed' },
+    })
+
+    console.log('✅ Confirm successful')
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('❌ Confirm error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
