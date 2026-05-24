@@ -8,9 +8,9 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
-    
+
     const where = status ? { status: status as any } : {}
-    
+
     const reservations = await prisma.reservation.findMany({
       where,
       include: {
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       },
       orderBy: { createdAt: 'desc' },
     })
-    
+
     return NextResponse.json(reservations)
   } catch (error) {
     console.error('GET error:', error)
@@ -32,10 +32,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { productId, warehouseId, quantity } = body
 
-    console.log('🔵 Reserve request:', { productId, warehouseId, quantity })
+    console.log('🔵 Reserve request:', {
+      productId,
+      warehouseId,
+      quantity,
+    })
 
     if (!productId || !warehouseId || !quantity) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing fields' },
+        { status: 400 }
+      )
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -48,7 +55,12 @@ export async function POST(req: NextRequest) {
       }
 
       const available = stock.total - stock.reserved
-      console.log('📊 Before:', { total: stock.total, reserved: stock.reserved, available })
+
+      console.log('📊 Before:', {
+        total: stock.total,
+        reserved: stock.reserved,
+        available,
+      })
 
       if (available < quantity) {
         throw new Error('Not enough stock')
@@ -57,6 +69,7 @@ export async function POST(req: NextRequest) {
       const expiresAt = new Date()
       expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
+      // Create reservation
       const reservation = await tx.reservation.create({
         data: {
           productId,
@@ -67,11 +80,26 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // ✅ ONLY update reserved - NEVER touch total
-      const updatedStock = await tx.stock.update({ where: { id: stock.id }, data: { reserved: {
-  increment: quantity
-}, })
-      console.log('📊 After:', { total: updatedStock.total, reserved: updatedStock.reserved })
+      // ✅ ONLY reserve stock temporarily
+      // total stays same
+      // reserved increases
+      const updatedStock = await tx.stock.update({
+        where: {
+          id: stock.id,
+        },
+        data: {
+          reserved: {
+            increment: quantity,
+          },
+        },
+      })
+
+      console.log('📊 After:', {
+        total: updatedStock.total,
+        reserved: updatedStock.reserved,
+        available:
+          updatedStock.total - updatedStock.reserved,
+      })
 
       return reservation
     })
@@ -79,9 +107,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result, { status: 201 })
   } catch (error: any) {
     console.error('❌ Error:', error)
+
     if (error.message === 'Not enough stock') {
-      return NextResponse.json({ error: 'Stock unavailable' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'Stock unavailable' },
+        { status: 409 }
+      )
     }
-    return NextResponse.json({ error: error.message }, { status: 500 })
+
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
   }
 }
