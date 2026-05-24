@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Body background gradient */
+body {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 50%, #f8fafc 100%);
+  min-height: 100vh;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -72,4 +78,11 @@
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+/* Container padding */
+.container-custom {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
