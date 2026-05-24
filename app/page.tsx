@@ -2,12 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { 
-  Heart, Clock, Shield, Truck, Star, 
-  Activity, Award, Users, Leaf, 
-  CheckCircle, AlertCircle, ShoppingBag,
-  TrendingUp, MapPin, Calendar, Bell
-} from 'lucide-react'
 
 type WarehouseStock = {
   warehouseId: string
@@ -67,7 +61,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl animate-pulse mx-auto mb-4 flex items-center justify-center">
-            <Activity className="w-8 h-8 text-white" />
+            <span className="text-3xl">🏥</span>
           </div>
           <p className="text-gray-600 font-medium">Loading wellness products...</p>
         </div>
@@ -84,7 +78,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-xl p-2 shadow-lg">
-                <Activity className="w-6 h-6 text-white" />
+                <span className="text-2xl">🏥</span>
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent">
@@ -100,14 +94,14 @@ export default function Home() {
                 <span className="text-teal-700">My Orders</span>
               </Link>
               <div className="hidden md:flex items-center gap-1 text-xs bg-teal-50 rounded-full px-3 py-1.5">
-                <Shield className="w-3 h-3 text-teal-600" />
+                <span>🛡️</span>
                 <span className="text-teal-700">ISO Certified</span>
               </div>
               <div className="hidden md:flex items-center gap-1 text-xs bg-emerald-50 rounded-full px-3 py-1.5">
-                <Truck className="w-3 h-3 text-emerald-600" />
+                <span>🚚</span>
                 <span className="text-emerald-700">Free Shipping</span>
               </div>
-              <Bell className="w-5 h-5 text-gray-500 hover:text-teal-600 cursor-pointer transition-colors" />
+              <span className="text-xl text-gray-500 hover:text-teal-600 cursor-pointer transition-colors">🔔</span>
             </div>
           </div>
         </div>
@@ -120,7 +114,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <span className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm mb-4 backdrop-blur-sm">
-                <Heart className="w-4 h-4" />
+                <span>❤️</span>
                 Trusted by 500+ healthcare providers
               </span>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -133,15 +127,15 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Clock className="w-4 h-4" />
+                  <span>⏰</span>
                   <span className="text-sm">10 min exclusive hold</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Shield className="w-4 h-4" />
+                  <span>✓</span>
                   <span className="text-sm">Secure checkout</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
-                  <Truck className="w-4 h-4" />
+                  <span>🚚</span>
                   <span className="text-sm">Express delivery</span>
                 </div>
               </div>
@@ -150,7 +144,7 @@ export default function Home() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                 <div className="flex justify-between mb-4">
                   <span className="text-sm">Today's Metrics</span>
-                  <TrendingUp className="w-4 h-4" />
+                  <span>📈</span>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
@@ -199,11 +193,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="bg-teal-500/20 rounded-xl p-2.5">
-                    {idx === 0 ? (
-                      <Activity className="w-6 h-6 text-teal-400" />
-                    ) : (
-                      <Heart className="w-6 h-6 text-teal-400" />
-                    )}
+                    <span className="text-2xl">{idx === 0 ? '🎧' : '⌚'}</span>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white">{product.name}</h3>
@@ -211,11 +201,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                  <Star className="w-3 h-3 text-gray-500" />
+                  <span className="text-yellow-400">★★★★☆</span>
                   <span className="text-xs text-gray-400 ml-1">(128 reviews)</span>
                 </div>
               </div>
@@ -233,26 +219,26 @@ export default function Home() {
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-teal-50 transition-colors border border-transparent hover:border-teal-200"
                     >
                       <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-teal-600 mt-0.5" />
+                        <span className="text-xl">📍</span>
                         <div>
                           <p className="font-medium text-gray-800">{wh.warehouseName}</p>
                           <div className="flex items-center gap-2 mt-1">
                             {isOutOfStock ? (
                               <span className="text-xs text-red-600 font-medium flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> Out of Stock
+                                <span>⚠️</span> Out of Stock
                               </span>
                             ) : isLowStock ? (
                               <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> Only {wh.availableStock} units left
+                                <span>⚠️</span> Only {wh.availableStock} units left
                               </span>
                             ) : (
                               <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" /> {wh.availableStock} units available
+                                <span>✅</span> {wh.availableStock} units available
                               </span>
                             )}
                             <span className="text-xs text-gray-400">•</span>
                             <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <Truck className="w-3 h-3" /> 2-3 day delivery
+                              <span>🚚</span> 2-3 day delivery
                             </span>
                           </div>
                         </div>
@@ -276,7 +262,7 @@ export default function Home() {
                           </>
                         ) : (
                           <>
-                            <Clock className="w-4 h-4" />
+                            <span>⏰</span>
                             <span>Reserve for 10 min</span>
                           </>
                         )}
@@ -289,15 +275,15 @@ export default function Home() {
               {/* Trust Badges */}
               <div className="px-6 pb-4 pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-500">
                 <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
+                  <span>🛡️</span>
                   <span>ISO 13485</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Award className="w-3 h-3" />
+                  <span>🏆</span>
                   <span>CE Certified</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Leaf className="w-3 h-3" />
+                  <span>🌿</span>
                   <span>Sustainable</span>
                 </div>
               </div>
@@ -312,7 +298,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-3 mb-4 md:mb-0">
               <div className="bg-teal-500 rounded-lg p-2">
-                <Activity className="w-5 h-5" />
+                <span className="text-xl">🏥</span>
               </div>
               <div>
                 <p className="font-bold">Allo Health</p>
