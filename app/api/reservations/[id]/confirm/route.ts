@@ -28,7 +28,7 @@ export async function POST(
         throw new Error('Expired')
       }
 
-      // ✅ FIX: Decrease both total AND reserved
+      // THIS IS THE KEY - Update both total AND reserved
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -37,8 +37,8 @@ export async function POST(
           },
         },
         data: {
-          total: { decrement: reservation.quantity },     // Decrease total stock
-          reserved: { decrement: reservation.quantity },  // Decrease reserved stock
+          total: { decrement: reservation.quantity },
+          reserved: { decrement: reservation.quantity },
         },
       })
 
