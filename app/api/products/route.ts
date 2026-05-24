@@ -16,7 +16,9 @@ export async function GET() {
     const productsMap = new Map()
 
     stocks.forEach((stock) => {
+      // ✅ Calculate available = total - reserved
       const available = stock.total - stock.reserved
+      
       if (!productsMap.has(stock.productId)) {
         productsMap.set(stock.productId, {
           id: stock.product.id,
@@ -25,12 +27,13 @@ export async function GET() {
           warehouses: [],
         })
       }
+      
       productsMap.get(stock.productId).warehouses.push({
         warehouseId: stock.warehouse.id,
         warehouseName: stock.warehouse.name,
-        totalStock: stock.total,
-        reservedStock: stock.reserved,  // ← Make sure this is included
-        availableStock: available,
+        totalStock: stock.total,        // ✅ This should be the DATABASE total (never changes)
+        reservedStock: stock.reserved,  // ✅ This is the reserved count
+        availableStock: available,       // ✅ This is total - reserved
       })
     })
 
