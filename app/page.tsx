@@ -58,138 +58,104 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-emerald-600 rounded-2xl animate-pulse mx-auto mb-4 flex items-center justify-center">
-            <span className="text-3xl">🏥</span>
-          </div>
-          <p className="text-gray-600 font-medium">Loading medical supplies...</p>
-        </div>
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner}></div>
+        <p style={styles.loadingText}>Loading medical supplies...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
+    <div style={styles.container}>
       
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-teal-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-teal-600 to-emerald-600 rounded-xl p-2 shadow-lg">
-                <img 
-                  src="https://media.allohealth.care/allo-logo-v1.png" 
-                  alt="Allo Health" 
-                  className="w-6 h-6 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                    const parent = e.currentTarget.parentElement
-                    if (parent) {
-                      parent.innerHTML = '<span class="text-2xl">🏥</span>'
-                    }
-                  }}
-                />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-teal-700 to-emerald-700 bg-clip-text text-transparent">
-                  Allo Health
-                </h1>
-                <p className="text-xs text-teal-600">Smart Inventory · Better Care</p>
-              </div>
+      <header style={styles.header}>
+        <div style={styles.headerContent}>
+          <div style={styles.logoArea}>
+            <div style={styles.logoIcon}>
+              <img 
+                src="https://media.allohealth.care/allo-logo-v1.png" 
+                alt="Allo Health" 
+                style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+              />
             </div>
-            
-            <div className="flex items-center gap-4">
-              <Link href="/orders" className="hidden md:flex items-center gap-1 text-xs bg-white rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all border border-teal-100">
-                <span>📦</span>
-                <span className="text-teal-700">My Orders</span>
-              </Link>
-              <div className="hidden md:flex items-center gap-1 text-xs bg-teal-50 rounded-full px-3 py-1.5">
-                <span>🛡️</span>
-                <span className="text-teal-700">ISO Certified</span>
-              </div>
-              <div className="hidden md:flex items-center gap-1 text-xs bg-emerald-50 rounded-full px-3 py-1.5">
-                <span>🚚</span>
-                <span className="text-emerald-700">Free Shipping</span>
-              </div>
-              <span className="text-xl text-gray-500 hover:text-teal-600 cursor-pointer transition-colors">🔔</span>
+            <div>
+              <h1 style={styles.logo}>Allo Health</h1>
+              <p style={styles.tagline}>Inventory Reservation System</p>
+            </div>
+          </div>
+          <div style={styles.headerRight}>
+            <Link href="/orders" style={styles.ordersLink}>📦 My Orders</Link>
+            <div style={styles.badge}>
+              <span style={styles.badgeText}>10 min hold</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section with Gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-600 text-white">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 text-sm mb-6 backdrop-blur-sm">
-              <span>❤️</span>
-              <span>Trusted by 500+ healthcare providers</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Smart Inventory for
-              <span className="block text-teal-200">Better Patient Care</span>
-            </h1>
-            <p className="text-teal-100 text-lg mb-8">
-              Real-time stock management with 10-minute reservation holds.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">⏰ 10 min hold</div>
-              <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">✓ Secure checkout</div>
-              <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">🚚 Free delivery</div>
+      {/* Hero Section */}
+      <div style={styles.hero}>
+        <div style={styles.heroContent}>
+          <div style={styles.heroLeft}>
+            <div style={styles.heroBadge}>Trusted by 500+ healthcare providers</div>
+            <h1 style={styles.heroTitle}>Smart Inventory for <span style={styles.heroHighlight}>Better Patient Care</span></h1>
+            <p style={styles.heroText}>Real-time stock management with 10-minute reservation holds.</p>
+            <div style={styles.heroFeatures}>
+              <div style={styles.heroFeature}>⏰ 10 min hold</div>
+              <div style={styles.heroFeature}>✓ Secure checkout</div>
+              <div style={styles.heroFeature}>🚚 Free delivery</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Stats Bar */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-teal-100">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-around text-center">
-            <div><div className="text-2xl font-bold text-teal-600">98.5%</div><div className="text-sm text-gray-500">Fulfillment Rate</div></div>
-            <div><div className="text-2xl font-bold text-teal-600">142</div><div className="text-sm text-gray-500">Active Reservations</div></div>
-            <div><div className="text-2xl font-bold text-teal-600">2,847</div><div className="text-sm text-gray-500">Available SKUs</div></div>
+          <div style={styles.statsGrid}>
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>98.5%</div>
+              <div style={styles.statLabel}>Fulfillment Rate</div>
+            </div>
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>142</div>
+              <div style={styles.statLabel}>Active Reservations</div>
+            </div>
+            <div style={styles.statCard}>
+              <div style={styles.statValue}>2,847</div>
+              <div style={styles.statLabel}>Available SKUs</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Products Section */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-gray-800">Featured Medical Supplies</h2>
-          <p className="text-gray-500 mt-1">Premium quality products for healthcare professionals</p>
-          <div className="w-20 h-1 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full mx-auto mt-3"></div>
+      <div style={styles.productsSection}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Featured Medical Supplies</h2>
+          <p style={styles.sectionSubtitle}>Premium quality products for healthcare professionals</p>
         </div>
         
         {products.length === 0 ? (
-          <div className="text-center py-12 bg-white/50 rounded-xl">
-            <p className="text-gray-500">No products found. Please seed your database.</p>
+          <div style={styles.emptyState}>
+            <p>No products found. Please check your database.</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div style={styles.productsGrid}>
             {products.map((product) => (
-              <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{product.sku}</p>
-                  
+              <div key={product.id} style={styles.productCard}>
+                <div style={styles.productHeader}>
+                  <h3 style={styles.productName}>{product.name}</h3>
+                  <p style={styles.productSku}>{product.sku}</p>
+                </div>
+                <div style={styles.productBody}>
                   {product.warehouses.map((wh) => (
-                    <div key={wh.warehouseId} className="flex justify-between items-center py-3 border-t border-gray-100 first:border-t-0">
+                    <div key={wh.warehouseId} style={styles.warehouseRow}>
                       <div>
-                        <p className="font-medium text-gray-800">{wh.warehouseName}</p>
-                        <p className="text-sm text-green-600">{wh.availableStock} available</p>
+                        <p style={styles.warehouseName}>{wh.warehouseName}</p>
+                        <p style={styles.stockText}>{wh.availableStock} available</p>
                       </div>
                       <button
                         onClick={() => handleReserve(product.id, wh.warehouseId)}
                         disabled={wh.availableStock === 0 || reserving === `${product.id}-${wh.warehouseId}`}
-                        className={`px-5 py-2 rounded-lg font-medium transition ${
-                          wh.availableStock === 0
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : reserving === `${product.id}-${wh.warehouseId}`
-                            ? 'bg-teal-400 text-white cursor-wait'
-                            : 'bg-teal-600 text-white hover:bg-teal-700'
-                        }`}
+                        style={{
+                          ...styles.reserveButton,
+                          ...(wh.availableStock === 0 ? styles.buttonDisabled : {})
+                        }}
                       >
                         {reserving === `${product.id}-${wh.warehouseId}` ? 'Reserving...' : 'Reserve for 10 min'}
                       </button>
@@ -203,17 +169,305 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex justify-center gap-6 text-sm text-gray-400 mb-4">
-            <a href="https://www.allohealth.com/about" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400">About</a>
-            <a href="https://www.allohealth.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400">Privacy</a>
-            <a href="https://www.allohealth.com/blog/sexual-education/terminology" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400">Terms</a>
-            <a href="mailto:care@allohealth.care" className="hover:text-teal-400">Contact</a>
+      <footer style={styles.footer}>
+        <div style={styles.footerContent}>
+          <div style={styles.footerLinks}>
+            <a href="https://www.allohealth.com/about" target="_blank" style={styles.footerLink}>About</a>
+            <a href="https://www.allohealth.com/legal/privacy-policy" target="_blank" style={styles.footerLink}>Privacy</a>
+            <a href="https://www.allohealth.com/blog/sexual-education/terminology" target="_blank" style={styles.footerLink}>Terms</a>
+            <a href="mailto:care@allohealth.care" style={styles.footerLink}>Contact</a>
           </div>
-          <div className="text-xs text-gray-500">© 2022 Allo Health. All rights reserved.</div>
+          <div style={styles.copyright}>© 2022 Allo Health. All rights reserved.</div>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
+}
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 30%, #f8fafc 100%)',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  },
+  // Header
+  header: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    backdropFilter: 'blur(8px)',
+    borderBottom: '1px solid #ccfbf1',
+    position: 'sticky',
+    top: 0,
+    zIndex: 50,
+  },
+  headerContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '16px 24px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  logoArea: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  logoIcon: {
+    width: '40px',
+    height: '40px',
+    background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    margin: 0,
+    background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  tagline: {
+    fontSize: '11px',
+    color: '#6b7280',
+    margin: 0,
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+  },
+  ordersLink: {
+    color: '#0f766e',
+    textDecoration: 'none',
+    fontSize: '14px',
+    fontWeight: '500',
+  },
+  badge: {
+    backgroundColor: '#ccfbf1',
+    padding: '6px 14px',
+    borderRadius: '20px',
+  },
+  badgeText: {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#0f766e',
+  },
+  // Hero
+  hero: {
+    background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+    color: 'white',
+  },
+  heroContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '48px 24px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap' as 'wrap',
+    gap: '32px',
+  },
+  heroLeft: {
+    flex: 1,
+    minWidth: '280px',
+  },
+  heroBadge: {
+    display: 'inline-block',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: '6px 16px',
+    borderRadius: '30px',
+    fontSize: '13px',
+    marginBottom: '20px',
+  },
+  heroTitle: {
+    fontSize: '36px',
+    fontWeight: 'bold',
+    marginBottom: '16px',
+    lineHeight: 1.2,
+  },
+  heroHighlight: {
+    color: '#ccfbf1',
+  },
+  heroText: {
+    fontSize: '16px',
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: '24px',
+  },
+  heroFeatures: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  heroFeature: {
+    fontSize: '13px',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: '6px 12px',
+    borderRadius: '20px',
+  },
+  statsGrid: {
+    display: 'flex',
+    gap: '16px',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  statCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: '20px',
+    borderRadius: '16px',
+    minWidth: '110px',
+    textAlign: 'center' as 'center',
+  },
+  statValue: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    fontSize: '12px',
+    opacity: 0.8,
+  },
+  // Products
+  productsSection: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '48px 24px',
+  },
+  sectionHeader: {
+    textAlign: 'center' as 'center',
+    marginBottom: '40px',
+  },
+  sectionTitle: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: '8px',
+  },
+  sectionSubtitle: {
+    fontSize: '14px',
+    color: '#6b7280',
+  },
+  emptyState: {
+    textAlign: 'center' as 'center',
+    padding: '48px',
+    backgroundColor: 'white',
+    borderRadius: '16px',
+  },
+  productsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+    gap: '24px',
+  },
+  productCard: {
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+  },
+  productHeader: {
+    padding: '20px 24px',
+    backgroundColor: '#f9fafb',
+    borderBottom: '1px solid #e5e7eb',
+  },
+  productName: {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    margin: 0,
+  },
+  productSku: {
+    fontSize: '12px',
+    color: '#6b7280',
+    marginTop: '4px',
+  },
+  productBody: {
+    padding: '8px 0',
+  },
+  warehouseRow: {
+    padding: '16px 24px',
+    borderBottom: '1px solid #f3f4f6',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  warehouseName: {
+    fontWeight: '500',
+    margin: 0,
+  },
+  stockText: {
+    fontSize: '13px',
+    color: '#059669',
+    marginTop: '4px',
+  },
+  reserveButton: {
+    backgroundColor: '#14b8a6',
+    color: 'white',
+    border: 'none',
+    padding: '8px 18px',
+    borderRadius: '8px',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+  },
+  buttonDisabled: {
+    backgroundColor: '#9ca3af',
+    cursor: 'not-allowed',
+  },
+  // Footer
+  footer: {
+    backgroundColor: '#1f2937',
+    color: 'white',
+    marginTop: '48px',
+  },
+  footerContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '32px 24px',
+    textAlign: 'center' as 'center',
+  },
+  footerLinks: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '24px',
+    marginBottom: '20px',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  footerLink: {
+    color: '#9ca3af',
+    textDecoration: 'none',
+    fontSize: '13px',
+  },
+  copyright: {
+    fontSize: '12px',
+    color: '#6b7280',
+    borderTop: '1px solid #374151',
+    paddingTop: '20px',
+  },
+  // Loading
+  loadingContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column' as 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)',
+  },
+  spinner: {
+    width: '48px',
+    height: '48px',
+    border: '3px solid #e5e7eb',
+    borderTopColor: '#14b8a6',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+  loadingText: {
+    marginTop: '16px',
+    color: '#6b7280',
+  },
 }
