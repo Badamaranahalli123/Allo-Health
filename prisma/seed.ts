@@ -11,7 +11,7 @@ async function main() {
     update: {},
     create: {
       id: 'wh_mumbai',
-      name: 'Mumbai Distribution Center',
+      name: 'Mumbai Medical Hub',
       location: 'Mumbai, India',
     },
   })
@@ -21,29 +21,29 @@ async function main() {
     update: {},
     create: {
       id: 'wh_delhi',
-      name: 'Delhi Logistics Hub',
+      name: 'Delhi Healthcare Center',
       location: 'Delhi, India',
     },
   })
 
-  // Create products
-  const headphones = await prisma.product.upsert({
-    where: { sku: 'ALLO-001' },
+  // Create MEDICAL products (not headphones)
+  const bpMonitor = await prisma.product.upsert({
+    where: { sku: 'MED-BP-001' },
     update: {},
     create: {
       id: 'p1',
-      name: 'Wireless Headphones',
-      sku: 'ALLO-001',
+      name: 'Digital Blood Pressure Monitor',
+      sku: 'MED-BP-001',
     },
   })
 
-  const smartwatch = await prisma.product.upsert({
-    where: { sku: 'ALLO-002' },
+  const oximeter = await prisma.product.upsert({
+    where: { sku: 'MED-OX-002' },
     update: {},
     create: {
       id: 'p2',
-      name: 'Smart Watch',
-      sku: 'ALLO-002',
+      name: 'Pulse Oximeter',
+      sku: 'MED-OX-002',
     },
   })
 
@@ -51,16 +51,16 @@ async function main() {
   await prisma.stock.upsert({
     where: {
       productId_warehouseId: {
-        productId: headphones.id,
+        productId: bpMonitor.id,
         warehouseId: mumbaiWarehouse.id,
       },
     },
     update: {},
     create: {
       id: 's1',
-      productId: headphones.id,
+      productId: bpMonitor.id,
       warehouseId: mumbaiWarehouse.id,
-      total: 5,
+      total: 10,
       reserved: 0,
     },
   })
@@ -68,16 +68,16 @@ async function main() {
   await prisma.stock.upsert({
     where: {
       productId_warehouseId: {
-        productId: headphones.id,
+        productId: bpMonitor.id,
         warehouseId: delhiWarehouse.id,
       },
     },
     update: {},
     create: {
       id: 's2',
-      productId: headphones.id,
+      productId: bpMonitor.id,
       warehouseId: delhiWarehouse.id,
-      total: 3,
+      total: 7,
       reserved: 0,
     },
   })
@@ -85,21 +85,38 @@ async function main() {
   await prisma.stock.upsert({
     where: {
       productId_warehouseId: {
-        productId: smartwatch.id,
+        productId: oximeter.id,
         warehouseId: mumbaiWarehouse.id,
       },
     },
     update: {},
     create: {
       id: 's3',
-      productId: smartwatch.id,
+      productId: oximeter.id,
       warehouseId: mumbaiWarehouse.id,
-      total: 2,
+      total: 25,
       reserved: 0,
     },
   })
 
-  console.log('✅ Seeded: 2 products, 2 warehouses, stock configured')
+  await prisma.stock.upsert({
+    where: {
+      productId_warehouseId: {
+        productId: oximeter.id,
+        warehouseId: delhiWarehouse.id,
+      },
+    },
+    update: {},
+    create: {
+      id: 's4',
+      productId: oximeter.id,
+      warehouseId: delhiWarehouse.id,
+      total: 18,
+      reserved: 0,
+    },
+  })
+
+  console.log('✅ Seeded: Medical products with stock')
 }
 
 main()
