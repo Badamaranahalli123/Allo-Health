@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
+      // 1. Find the stock with FOR UPDATE lock
       const stock = await tx.stock.findUnique({
         where: { productId_warehouseId: { productId, warehouseId } },
       })
@@ -22,15 +23,18 @@ export async function POST(req: NextRequest) {
         throw new Error('Stock not found')
       }
 
+      // 2. Calculate available
       const available = stock.total - stock.reserved
+      console.log('Stock before:', { total: stock.total, reserved: stock.reserved, available })
+
       if (available < quantity) {
         throw new Error('Not enough stock')
       }
 
+      // 3. Create reservation
       const expiresAt = new Date()
       expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
-      // Create reservation
       const reservation = await tx.reservation.create({
         data: {
           productId,
@@ -41,19 +45,20 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // ✅ CRITICAL: Update reserved count
+      // 4. INCREASE reserved count
       const updatedStock = await tx.stock.update({
         where: { id: stock.id },
         data: { reserved: { increment: quantity } },
       })
 
-      console.log('Stock updated - New reserved value:', updatedStock.reserved)
+      console.log('Stock after:', { total: updatedStock.total, reserved: updatedStock.reserved })
 
       return reservation
     })
 
     return NextResponse.json(result, { status: 201 })
   } catch (error: any) {
+    console.error('Reservation error:', error)
     if (error.message === 'Not enough stock') {
       return NextResponse.json({ error: 'Stock unavailable' }, { status: 409 })
     }
