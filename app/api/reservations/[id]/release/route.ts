@@ -20,6 +20,8 @@ export async function POST(
         throw new Error('Cannot release')
       }
 
+      // ✅ CORRECT: When cancelling, ONLY decrease reserved (release the hold)
+      // Total stays the same
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -28,7 +30,7 @@ export async function POST(
           },
         },
         data: {
-          reserved: { decrement: reservation.quantity },
+          reserved: { decrement: reservation.quantity },  // ← Release hold only
         },
       })
 
