@@ -1,30 +1,84 @@
 # Allo Health - Inventory Reservation System
 
-## Live Demo
-https://allohealth-one.vercel.app/
+## 🚀 Live Demo
+[https://allohealth-one.vercel.app](https://allohealth-one.vercel.app)
 
-## Features
-- ✅ Reserve stock for 10 minutes
-- ✅ Race-condition free with database locks
-- ✅ Confirm or cancel reservations
-- ✅ Auto-expiry via cron job
-- ✅ Live countdown timer
+## 📦 GitHub Repository
+[https://github.com/Badamaranahalli123/Allo-Health](https://github.com/Badamaranahalli123/Allo-Health)
 
-## How expiry works in production
-Vercel Cron job runs every minute hitting `/api/cron/release-expired` which finds expired pending reservations and releases them atomically.
+---
 
-## Concurrency strategy
-Prisma transaction with row-level lock ensures that concurrent reserve requests for the last unit are serialized – only one succeeds.
+## 📋 Project Overview
 
-## Local setup
-1. Clone repo
-2. Copy `.env.local.example` to `.env.local`
-3. Set `DATABASE_URL` (Supabase/Neon PostgreSQL)
-4. Run `npx prisma migrate dev`
-5. Run `npx prisma db seed` (or manually add products/warehouses)
-6. `npm run dev`
+This project solves the **race condition problem** in e-commerce checkout where multiple customers try to purchase the last unit of a product simultaneously.
 
-## Trade-offs
-- No idempotency (bonus not attempted)
-- Cron job instead of background worker (simpler for Vercel)
-- GET endpoint for `/api/reservations/[id]` not implemented (frontend uses fallback)
+**The Problem:**
+- When payment takes several minutes (3DS flows, UPI confirmations), thousands of shoppers may see the same product page
+- Decrementing stock at payment time → two customers can pay for the same unit
+- Decrementing stock at add-to-cart → 80% of abandoned carts deplete inventory
+
+**The Solution:** 
+Temporary reservations that hold stock for 10 minutes. If payment succeeds → confirm and permanently deduct. If payment fails or timer expires → release stock back to inventory.
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS |
+| **Backend** | Next.js API Routes (serverless functions) |
+| **Database** | PostgreSQL (Supabase) |
+| **ORM** | Prisma |
+| **Deployment** | Vercel |
+
+---
+
+## 🗄️ Database Schema
+
+```prisma
+model Product {
+  id           String        @id @default(cuid())
+  name         String
+  sku          String        @unique
+  Stocks       Stock[]
+  Reservations Reservation[]
+}
+
+model Warehouse {
+  id           String        @id @default(cuid())
+  name         String
+  location     String
+  Stocks       Stock[]
+  Reservations Reservation[]
+}
+
+model Stock {
+  id          String   @id @default(cuid())
+  productId   String
+  warehouseId String
+  total       Int      @default(0)    // Total physical units
+  reserved    Int      @default(0)    // Currently reserved units
+  product     Product   @relation(...)
+  warehouse   Warehouse @relation(...)
+
+  @@unique([productId, warehouseId])
+}
+
+model Reservation {
+  id          String   @id @default(cuid())
+  productId   String
+  warehouseId String
+  quantity    Int
+  status      Status   @default(pending)  // pending, confirmed, released
+  expiresAt   DateTime                     // 10 minutes from creation
+  createdAt   DateTime @default(now())
+}
+
+enum Status {
+  pending
+  confirmed
+  released
+}
