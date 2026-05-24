@@ -4,33 +4,6 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// GET - Fetch reservations (for orders page)
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const status = searchParams.get('status')
-    
-    const where = status ? { status: status as any } : {}
-    
-    const reservations = await prisma.reservation.findMany({
-      where,
-      include: {
-        product: true,
-        warehouse: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-    
-    return NextResponse.json(reservations)
-  } catch (error) {
-    console.error('Error fetching reservations:', error)
-    return NextResponse.json([], { status: 200 })
-  }
-}
-
-// POST - Create reservation
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { productId, warehouseId, quantity } = body
@@ -57,6 +30,7 @@ export async function POST(req: NextRequest) {
       const expiresAt = new Date()
       expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
+      // Create reservation
       const reservation = await tx.reservation.create({
         data: {
           productId,
@@ -67,10 +41,13 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      await tx.stock.update({
+      // ✅ CRITICAL: Update reserved count
+      const updatedStock = await tx.stock.update({
         where: { id: stock.id },
         data: { reserved: { increment: quantity } },
       })
+
+      console.log('Stock updated - New reserved value:', updatedStock.reserved)
 
       return reservation
     })
