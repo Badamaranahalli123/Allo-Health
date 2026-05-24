@@ -6,6 +6,8 @@ import Link from 'next/link'
 type WarehouseStock = {
   warehouseId: string
   warehouseName: string
+  totalStock: number
+  reservedStock: number
   availableStock: number
 }
 
@@ -144,21 +146,42 @@ export default function Home() {
                 </div>
                 <div style={styles.productBody}>
                   {product.warehouses.map((wh) => (
-                    <div key={wh.warehouseId} style={styles.warehouseRow}>
-                      <div>
-                        <p style={styles.warehouseName}>{wh.warehouseName}</p>
-                        <p style={styles.stockText}>{wh.availableStock} available</p>
+                    <div key={wh.warehouseId}>
+                      {/* Total vs Reserved Stock Display */}
+                      <div style={styles.stockInfo}>
+                        <div style={styles.stockTitle}>📊 Stock Breakdown: Total = Available + Reserved</div>
+                        <div style={styles.stockRow}>
+                          <span>📦 Total Stock:</span>
+                          <span style={styles.stockValue}>{wh.totalStock} units</span>
+                        </div>
+                        <div style={styles.stockRow}>
+                          <span>🔒 Reserved Stock:</span>
+                          <span style={styles.stockValueReserved}>{wh.reservedStock} units</span>
+                        </div>
+                        <div style={styles.stockRow}>
+                          <span>✅ Available Stock:</span>
+                          <span style={styles.stockValueAvailable}>{wh.availableStock} units</span>
+                        </div>
+                        <div style={styles.stockFormula}>
+                          {wh.totalStock} = {wh.availableStock} + {wh.reservedStock}
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleReserve(product.id, wh.warehouseId)}
-                        disabled={wh.availableStock === 0 || reserving === `${product.id}-${wh.warehouseId}`}
-                        style={{
-                          ...styles.reserveButton,
-                          ...(wh.availableStock === 0 ? styles.buttonDisabled : {})
-                        }}
-                      >
-                        {reserving === `${product.id}-${wh.warehouseId}` ? 'Reserving...' : 'Reserve for 10 min'}
-                      </button>
+                      
+                      <div style={styles.warehouseRow}>
+                        <div>
+                          <p style={styles.warehouseName}>{wh.warehouseName}</p>
+                        </div>
+                        <button
+                          onClick={() => handleReserve(product.id, wh.warehouseId)}
+                          disabled={wh.availableStock === 0 || reserving === `${product.id}-${wh.warehouseId}`}
+                          style={{
+                            ...styles.reserveButton,
+                            ...(wh.availableStock === 0 ? styles.buttonDisabled : {})
+                          }}
+                        >
+                          {reserving === `${product.id}-${wh.warehouseId}` ? 'Reserving...' : 'Reserve for 10 min'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -196,7 +219,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 30%, #f8fafc 100%)',
     fontFamily: 'system-ui, -apple-system, sans-serif',
   },
-  // Header
   header: {
     backgroundColor: 'rgba(255,255,255,0.9)',
     backdropFilter: 'blur(8px)',
@@ -262,7 +284,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: '600',
     color: '#0f766e',
   },
-  // Hero
   hero: {
     background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
     color: 'white',
@@ -334,7 +355,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12px',
     opacity: 0.8,
   },
-  // Products
   productsSection: {
     maxWidth: '1200px',
     margin: '0 auto',
@@ -362,7 +382,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   productsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
     gap: '24px',
   },
   productCard: {
@@ -387,11 +407,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '4px',
   },
   productBody: {
-    padding: '8px 0',
+    padding: '16px 0',
+  },
+  stockInfo: {
+    backgroundColor: '#f1f5f9',
+    padding: '12px 16px',
+    margin: '0 16px 12px 16px',
+    borderRadius: '10px',
+  },
+  stockTitle: {
+    fontSize: '11px',
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: '8px',
+    textAlign: 'center' as 'center',
+  },
+  stockRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '13px',
+    padding: '4px 0',
+  },
+  stockValue: {
+    fontWeight: '600',
+    color: '#1e293b',
+  },
+  stockValueReserved: {
+    fontWeight: '600',
+    color: '#d97706',
+  },
+  stockValueAvailable: {
+    fontWeight: '600',
+    color: '#059669',
+  },
+  stockFormula: {
+    fontSize: '10px',
+    color: '#64748b',
+    textAlign: 'center' as 'center',
+    marginTop: '8px',
+    paddingTop: '6px',
+    borderTop: '1px dashed #cbd5e1',
   },
   warehouseRow: {
-    padding: '16px 24px',
-    borderBottom: '1px solid #f3f4f6',
+    padding: '12px 24px 20px 24px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -399,11 +457,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   warehouseName: {
     fontWeight: '500',
     margin: 0,
-  },
-  stockText: {
-    fontSize: '13px',
-    color: '#059669',
-    marginTop: '4px',
+    fontSize: '14px',
   },
   reserveButton: {
     backgroundColor: '#14b8a6',
@@ -419,7 +473,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#9ca3af',
     cursor: 'not-allowed',
   },
-  // Footer
   footer: {
     backgroundColor: '#1f2937',
     color: 'white',
@@ -449,7 +502,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderTop: '1px solid #374151',
     paddingTop: '20px',
   },
-  // Loading
   loadingContainer: {
     minHeight: '100vh',
     display: 'flex',
