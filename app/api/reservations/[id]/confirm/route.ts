@@ -21,22 +21,31 @@ export async function POST(
     console.log('📊 Reservation found:', reservation)
 
     if (!reservation) {
-      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Reservation not found' },
+        { status: 404 }
+      )
     }
 
     if (reservation.status !== 'pending') {
-      return NextResponse.json({ error: 'Reservation already processed' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Reservation already processed' },
+        { status: 400 }
+      )
     }
 
     if (new Date() > new Date(reservation.expiresAt)) {
-      return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
+      return NextResponse.json(
+        { error: 'Reservation expired' },
+        { status: 410 }
+      )
     }
 
-    // Update stock - set reserved to 0 using raw SQL
+    // Increment reserved stock
     await prisma.$executeRaw`
-      UPDATE "Stock" 
-      SET reserved = 0 
-      WHERE "productId" = ${reservation.productId} 
+      UPDATE "Stock"
+      SET reserved = reserved + ${reservation.quantity}
+      WHERE "productId" = ${reservation.productId}
       AND "warehouseId" = ${reservation.warehouseId}
     `
 
@@ -51,6 +60,10 @@ export async function POST(
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('❌ Confirm error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
   }
 }
