@@ -41,7 +41,7 @@ export async function POST(
       await tx.stock.update({
         where: { id: stock.id },
         data: {
-          total: { decrement: reservation.quantity },
+          total: {  reservation.quantity },
         },
       })
 
