@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { 
   Heart, Clock, Shield, Truck, Star, 
   Activity, Award, Users, Leaf, 
@@ -94,6 +95,10 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4">
+              <Link href="/orders" className="hidden md:flex items-center gap-1 text-xs bg-white rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all border border-teal-100">
+                <span>📦</span>
+                <span className="text-teal-700">My Orders</span>
+              </Link>
               <div className="hidden md:flex items-center gap-1 text-xs bg-teal-50 rounded-full px-3 py-1.5">
                 <Shield className="w-3 h-3 text-teal-600" />
                 <span className="text-teal-700">ISO Certified</span>
@@ -315,14 +320,14 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-teal-400 transition-colors">About</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Terms</a>
-              <a href="#" className="hover:text-teal-400 transition-colors">Contact</a>
+              <a href="https://www.allohealth.com/about" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">About</a>
+              <a href="https://www.allohealth.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">Privacy</a>
+              <a href="https://www.allohealth.com/blog/sexual-education/terminology" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">Terms</a>
+              <a href="mailto:care@allohealth.care" className="hover:text-teal-400 transition-colors">Contact</a>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-6 pt-6 text-center text-xs text-gray-500">
-            © 2024 Allo Health. Smart inventory for better healthcare.
+            © 2022 Allo Health. Smart inventory for better healthcare.
           </div>
         </div>
       </footer>
