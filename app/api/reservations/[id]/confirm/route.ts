@@ -29,18 +29,22 @@ export async function POST(
       }
 
       // ✅ CORRECT: When confirming:
-      // 1. Decrease total (permanent deduction)
-      // 2. Decrease reserved (remove hold)
-      await tx.stock.update({
+      // - Decrease total (permanent deduction)
+      // - Decrease reserved (remove the hold)
+      const stock = await tx.stock.findFirst({
         where: {
-          productId_warehouseId: {
-            productId: reservation.productId,
-            warehouseId: reservation.warehouseId,
-          },
+          productId: reservation.productId,
+          warehouseId: reservation.warehouseId,
         },
+      })
+
+      console.log('📊 Stock before confirm:', { total: stock.total, reserved: stock.reserved })
+
+      await tx.stock.update({
+        where: { id: stock.id },
         data: {
-          total: { decrement: reservation.quantity },     // ← Permanent deduction
-          reserved: { decrement: reservation.quantity },  // ← Release the hold
+          total: { decrement: reservation.quantity },
+          reserved: { decrement: reservation.quantity },
         },
       })
 
@@ -48,6 +52,11 @@ export async function POST(
         where: { id: reservationId },
         data: { status: 'confirmed' },
       })
+
+      const updatedStock = await tx.stock.findFirst({
+        where: { id: stock.id },
+      })
+      console.log('📊 Stock after confirm:', { total: updatedStock.total, reserved: updatedStock.reserved })
 
       return { success: true }
     })
