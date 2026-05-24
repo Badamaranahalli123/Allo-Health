@@ -1,61 +1,51 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest) {
   try {
-    const reservationId = params.id
+    const body = await req.json()
+    const { productId, warehouseId, quantity } = body
 
     const result = await prisma.$transaction(async (tx) => {
-      const reservation = await tx.reservation.findUnique({
-        where: { id: reservationId },
+      const stock = await tx.stock.findFirst({
+        where: { productId, warehouseId },
       })
 
-      if (!reservation) {
-        throw new Error('Reservation not found')
+      if (!stock) {
+        throw new Error('Stock not found')
       }
 
-      if (reservation.status !== 'pending') {
-        throw new Error('Reservation already processed')
+      const available = stock.total - stock.reserved
+      if (available < quantity) {
+        throw new Error('Not enough stock')
       }
 
-      if (new Date() > new Date(reservation.expiresAt)) {
-        throw new Error('Expired')
-      }
+      const expiresAt = new Date()
+      expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
-      const stock = await tx.stock.findFirst({
-        where: {
-          productId: reservation.productId,
-          warehouseId: reservation.warehouseId,
+      const reservation = await tx.reservation.create({
+        data: {
+          productId,
+          warehouseId,
+          quantity,
+          expiresAt,
+          status: 'pending',
         },
       })
 
-      // ✅ ONLY set reserved to 0, total stays the same
+      // ✅ THIS INCREMENTS RESERVED BY 1
       await tx.stock.update({
-  where: { id: stock.id },
-  data: { 
-    reserved: { increment: quantity }  // ← This INCREMENTS reserved
-  },
-})
-
-      await tx.reservation.update({
-        where: { id: reservationId },
-        data: { status: 'confirmed' },
+        where: { id: stock.id },
+        data: { 
+          reserved: { increment: quantity }
+        },
       })
 
-      return { success: true }
+      return reservation
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json(result, { status: 201 })
   } catch (error: any) {
-    if (error.message === 'Expired') {
-      return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
+    if (error.message === 'Not enough stock') {
+      return NextResponse.json({ error: 'Stock unavailable' }, { status: 409 })
     }
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
