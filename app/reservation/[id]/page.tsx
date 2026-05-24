@@ -6,16 +6,23 @@ import { useEffect, useState } from 'react'
 export default function ReservationPage() {
   const { id } = useParams()
   const router = useRouter()
+  const [isClient, setIsClient] = useState(false)
   const [timeLeft, setTimeLeft] = useState(600)
   const [loading, setLoading] = useState(false)
   const [expired, setExpired] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [reservationStatus, setReservationStatus] = useState<string>('pending')
-  const [activityLog, setActivityLog] = useState<{status: string, time: string, message: string}[]>([
-    { status: 'pending', time: new Date().toLocaleTimeString(), message: 'Reservation created - Stock temporarily held' }
-  ])
+  const [activityLog, setActivityLog] = useState<{status: string, time: string, message: string}[]>([])
 
   useEffect(() => {
+    setIsClient(true)
+    
+    setActivityLog([{
+      status: 'pending',
+      time: new Date().toLocaleTimeString(),
+      message: 'Reservation created - Stock temporarily held'
+    }])
+
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -60,7 +67,7 @@ export default function ReservationPage() {
       setActivityLog(prev => [...prev, {
         status: 'confirmed',
         time: new Date().toLocaleTimeString(),
-        message: 'Purchase confirmed - Stock permanently deducted (Total -1, Reserved -1)'
+        message: 'Purchase confirmed - Stock permanently deducted'
       }])
       setShowSuccess(true)
       setTimeout(() => router.push('/'), 2000)
@@ -75,10 +82,24 @@ export default function ReservationPage() {
     setActivityLog(prev => [...prev, {
       status: 'released',
       time: new Date().toLocaleTimeString(),
-      message: 'Reservation cancelled - Stock released (Reserved -1)'
+      message: 'Reservation cancelled - Stock released'
     }])
     router.push('/')
     setLoading(false)
+  }
+
+  if (!isClient) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <div style={styles.headerIcon}>🛡️</div>
+            <h1 style={styles.title}>Complete Your Purchase</h1>
+            <p style={styles.subtitle}>Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (expired) {
@@ -110,14 +131,12 @@ export default function ReservationPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerIcon}>🛡️</div>
           <h1 style={styles.title}>Complete Your Purchase</h1>
           <p style={styles.subtitle}>Your item is reserved for 10 minutes</p>
         </div>
 
-        {/* Timer Circle */}
         <div style={styles.timerSection}>
           <div style={styles.circleContainer}>
             <svg style={styles.svg} viewBox="0 0 120 120">
@@ -144,7 +163,7 @@ export default function ReservationPage() {
           </div>
         </div>
 
-        {/* Activity Log - Shows State Transitions */}
+        {/* Activity Log */}
         <div style={styles.activityLog}>
           <h4 style={styles.activityTitle}>📋 Reservation Activity Log</h4>
           {activityLog.map((log, index) => (
@@ -164,7 +183,6 @@ export default function ReservationPage() {
           </div>
         </div>
 
-        {/* Buttons */}
         <div style={styles.actions}>
           <button
             onClick={confirmPurchase}
@@ -186,7 +204,6 @@ export default function ReservationPage() {
           </button>
         </div>
 
-        {/* Footer Note */}
         <div style={styles.footerNote}>
           ⏰ Reservation expires automatically after 10 minutes
         </div>
