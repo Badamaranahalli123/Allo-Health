@@ -6,55 +6,47 @@ import Link from 'next/link'
 type Order = {
   id: string
   product: { name: string; sku: string }
-  warehouse: { name: string; location: string }
+  warehouse: { name: string }
   quantity: number
   createdAt: string
   status: string
-  expiresAt?: string
 }
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchOrders = () => {
-    fetch('/api/reservations?status=confirmed')
-      .then(res => res.json())
-      .then(data => {
-        setOrders(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+  const fetchOrders = async () => {
+    try {
+      // Fetch ALL reservations (not just confirmed)
+      const res = await fetch('/api/reservations')
+      const data = await res.json()
+      console.log('📦 Orders from API:', data)
+      setOrders(data)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
     fetchOrders()
-    
-    // Auto-refresh every 5 seconds to show state changes
     const interval = setInterval(fetchOrders, 5000)
     return () => clearInterval(interval)
   }, [])
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return { color: '#059669', bg: '#d1fae5', text: '✓ Confirmed', label: 'Stock permanently deducted' }
-      case 'pending':
-        return { color: '#d97706', bg: '#fef3c7', text: '⏳ Pending', label: 'Awaiting confirmation' }
-      case 'released':
-        return { color: '#dc2626', bg: '#fee2e2', text: '✗ Released', label: 'Stock released back' }
-      case 'expired':
-        return { color: '#6b7280', bg: '#f3f4f6', text: '⌛ Expired', label: 'Reservation timed out' }
-      default:
-        return { color: '#6b7280', bg: '#f3f4f6', text: status, label: status }
-    }
-  }
-
   if (loading) {
     return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}></div>
-        <p>Loading your orders...</p>
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <Link href="/" style={styles.backLink}>← Back to Shop</Link>
+          <h1 style={styles.title}>My Orders</h1>
+          <div style={styles.headerSpacer}></div>
+        </div>
+        <div style={styles.content}>
+          <p>Loading orders...</p>
+        </div>
       </div>
     )
   }
@@ -77,66 +69,36 @@ export default function OrdersPage() {
           </div>
         ) : (
           <div style={styles.ordersList}>
-            <div style={styles.autoRefreshNote}>
-              🔄 Auto-refreshing every 5 seconds to show real-time state changes
-            </div>
-            {orders.map((order) => {
-              const badge = getStatusBadge(order.status)
-              return (
-                <div key={order.id} style={styles.orderCard}>
-                  <div style={styles.orderHeader}>
-                    <div style={styles.orderIdSection}>
-                      <span style={styles.orderId}>Order #{order.id.slice(-8)}</span>
-                      <span style={{ ...styles.orderStatus, backgroundColor: badge.bg, color: badge.color }}>
-                        {badge.text}
-                      </span>
-                    </div>
-                    <span style={styles.orderDate}>
-                      {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
-                    </span>
+            {orders.map((order) => (
+              <div key={order.id} style={styles.orderCard}>
+                <div style={styles.orderHeader}>
+                  <span style={styles.orderId}>Order #{order.id.slice(-8)}</span>
+                  <span style={{
+                    ...styles.orderStatus,
+                    backgroundColor: order.status === 'confirmed' ? '#d1fae5' : '#fef3c7',
+                    color: order.status === 'confirmed' ? '#059669' : '#d97706',
+                  }}>
+                    {order.status === 'confirmed' ? '✓ Confirmed' : order.status}
+                  </span>
+                  <span style={styles.orderDate}>
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div style={styles.orderBody}>
+                  <div>
+                    <h3 style={styles.productName}>{order.product.name}</h3>
+                    <p style={styles.productSku}>SKU: {order.product.sku}</p>
                   </div>
-                  <div style={styles.orderBody}>
-                    <div style={styles.productSection}>
-                      <div style={styles.productIcon}>🏥</div>
-                      <div>
-                        <h3 style={styles.productName}>{order.product.name}</h3>
-                        <p style={styles.productSku}>SKU: {order.product.sku}</p>
-                      </div>
-                    </div>
-                    <div style={styles.orderDetails}>
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailLabel}>Warehouse</span>
-                        <span style={styles.detailValue}>{order.warehouse.name}</span>
-                      </div>
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailLabel}>Quantity</span>
-                        <span style={styles.detailValue}>{order.quantity}</span>
-                      </div>
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailLabel}>Status</span>
-                        <span style={styles.detailValue}>{badge.label}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={styles.orderFooter}>
-                    <span style={styles.trackingStatus}>
-                      {order.status === 'confirmed' ? '✓ Order confirmed • Stock permanently deducted' : 
-                       order.status === 'pending' ? '⏳ Waiting for confirmation • Stock reserved' :
-                       '✗ Reservation released • Stock available again'}
-                    </span>
+                  <div>
+                    <p><strong>Quantity:</strong> {order.quantity}</p>
+                    <p><strong>Warehouse:</strong> {order.warehouse.name}</p>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   )
 }
@@ -175,22 +137,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 auto',
     padding: '32px 24px',
   },
-  loadingContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column' as 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)',
-  },
-  spinner: {
-    width: '48px',
-    height: '48px',
-    border: '3px solid #e5e7eb',
-    borderTopColor: '#14b8a6',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-  },
   emptyState: {
     textAlign: 'center' as 'center',
     padding: '60px 20px',
@@ -221,15 +167,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   ordersList: {
     display: 'flex',
     flexDirection: 'column' as 'column',
-    gap: '20px',
-  },
-  autoRefreshNote: {
-    textAlign: 'center' as 'center',
-    fontSize: '11px',
-    color: '#6b7280',
-    backgroundColor: '#f1f5f9',
-    padding: '8px',
-    borderRadius: '8px',
+    gap: '16px',
   },
   orderCard: {
     backgroundColor: 'white',
@@ -245,11 +183,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'space-between',
     flexWrap: 'wrap' as 'wrap',
     gap: '8px',
-  },
-  orderIdSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
   },
   orderId: {
     fontWeight: '600',
@@ -270,50 +203,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'space-between',
     flexWrap: 'wrap' as 'wrap',
-    gap: '20px',
-  },
-  productSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  productIcon: {
-    fontSize: '32px',
+    gap: '16px',
   },
   productName: {
     fontWeight: '600',
     marginBottom: '4px',
   },
   productSku: {
-    fontSize: '12px',
-    color: '#6b7280',
-  },
-  orderDetails: {
-    display: 'flex',
-    gap: '24px',
-    flexWrap: 'wrap' as 'wrap',
-  },
-  detailItem: {
-    display: 'flex',
-    flexDirection: 'column' as 'column',
-    gap: '4px',
-  },
-  detailLabel: {
-    fontSize: '11px',
-    color: '#9ca3af',
-    textTransform: 'uppercase' as 'uppercase',
-  },
-  detailValue: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#111827',
-  },
-  orderFooter: {
-    backgroundColor: '#f9fafb',
-    padding: '12px 20px',
-    borderTop: '1px solid #e5e7eb',
-  },
-  trackingStatus: {
     fontSize: '12px',
     color: '#6b7280',
   },
