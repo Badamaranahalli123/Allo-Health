@@ -35,17 +35,14 @@ export async function POST(
         },
       })
 
-      // ✅ CORRECT: When confirming:
-      // 1. Decrease Total (permanent deduction)
-      // 2. Decrease Reserved (remove the hold)
+      // ✅ ONLY set reserved to 0, total stays the same
       await tx.stock.update({
         where: { id: stock.id },
         data: {
-          available:{decrement: reservation.quantity},
+          reserved: 0,  // ← Set reserved to 0 directly
         },
       })
 
-      // Update reservation status to confirmed
       await tx.reservation.update({
         where: { id: reservationId },
         data: { status: 'confirmed' },
