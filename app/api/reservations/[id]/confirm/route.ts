@@ -28,9 +28,6 @@ export async function POST(
         throw new Error('Expired')
       }
 
-      // ✅ CORRECT: When confirming:
-      // - Decrease total (permanent deduction)
-      // - Decrease reserved (remove the hold)
       const stock = await tx.stock.findFirst({
         where: {
           productId: reservation.productId,
@@ -38,32 +35,28 @@ export async function POST(
         },
       })
 
-      console.log('📊 Stock before confirm:', { total: stock.total, reserved: stock.reserved })
-
+      // ✅ CORRECT: When confirming:
+      // 1. Decrease Total (permanent deduction)
+      // 2. Decrease Reserved (remove the hold)
       await tx.stock.update({
         where: { id: stock.id },
         data: {
           total: { decrement: reservation.quantity },
-          reserved: { decrement: reservation.quantity },
+          reserved: { increment: reservation.quantity },
         },
       })
 
+      // Update reservation status to confirmed
       await tx.reservation.update({
         where: { id: reservationId },
         data: { status: 'confirmed' },
       })
-
-      const updatedStock = await tx.stock.findFirst({
-        where: { id: stock.id },
-      })
-      console.log('📊 Stock after confirm:', { total: updatedStock.total, reserved: updatedStock.reserved })
 
       return { success: true }
     })
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Confirm error:', error)
     if (error.message === 'Expired') {
       return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
     }
