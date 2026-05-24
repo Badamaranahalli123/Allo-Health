@@ -28,6 +28,9 @@ export async function POST(
         throw new Error('Expired')
       }
 
+      // ✅ CORRECT: When confirming:
+      // 1. Decrease total (permanent deduction)
+      // 2. Decrease reserved (remove hold)
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -36,8 +39,8 @@ export async function POST(
           },
         },
         data: {
-          total: { decrement: reservation.quantity },
-          reserved: { decrement: reservation.quantity },
+          total: { decrement: reservation.quantity },     // ← Permanent deduction
+          reserved: { decrement: reservation.quantity },  // ← Release the hold
         },
       })
 
