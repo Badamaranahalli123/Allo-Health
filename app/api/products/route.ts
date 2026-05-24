@@ -29,7 +29,7 @@ export async function GET() {
         warehouseId: stock.warehouse.id,
         warehouseName: stock.warehouse.name,
         totalStock: stock.total,
-        reservedStock: stock.reserved,
+        reservedStock: stock.reserved,  // ← Make sure this is included
         availableStock: available,
       })
     })
