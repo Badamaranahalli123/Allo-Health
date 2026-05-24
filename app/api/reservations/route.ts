@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// GET - Fetch reservations for Orders page
+// GET endpoint for Orders page
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Create reservation
+// POST - Create reservation (CORRECT LOGIC)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -40,9 +40,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
 
-    // Use transaction to ensure atomicity
     const result = await prisma.$transaction(async (tx) => {
-      // Lock and get stock
+      // Find the stock
       const stock = await tx.stock.findFirst({
         where: { productId, warehouseId },
       })
@@ -52,7 +51,7 @@ export async function POST(req: NextRequest) {
       }
 
       const available = stock.total - stock.reserved
-      console.log('📊 Current:', { total: stock.total, reserved: stock.reserved, available })
+      console.log('📊 Before:', { total: stock.total, reserved: stock.reserved, available })
 
       if (available < quantity) {
         throw new Error('Not enough stock')
@@ -72,13 +71,15 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // INCREASE reserved stock - THIS IS THE KEY!
+      // ✅ CORRECT: ONLY increase reserved, NEVER decrease total
       const updatedStock = await tx.stock.update({
         where: { id: stock.id },
-        data: { reserved: { increment: quantity } },
+        data: { 
+          reserved: { increment: quantity }  // ← ONLY THIS! Total stays the same
+        },
       })
 
-      console.log('📊 After update:', { total: updatedStock.total, reserved: updatedStock.reserved })
+      console.log('📊 After:', { total: updatedStock.total, reserved: updatedStock.reserved, available: updatedStock.total - updatedStock.reserved })
 
       return reservation
     })
