@@ -10,25 +10,31 @@ export async function POST(
 ) {
   const reservationId = params.id
 
+  console.log('🔵 Confirm request for reservation:', reservationId)
+
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const reservation = await tx.reservation.findUnique({
-        where: { id: reservationId },
-      })
+    // First, get the reservation
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+    })
 
-      if (!reservation) {
-        throw new Error('Reservation not found')
-      }
+    console.log('🔵 Found reservation:', reservation)
 
-      if (reservation.status !== 'pending') {
-        throw new Error('Reservation already processed')
-      }
+    if (!reservation) {
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
+    }
 
-      if (new Date() > reservation.expiresAt) {
-        throw new Error('Expired')
-      }
+    if (reservation.status !== 'pending') {
+      return NextResponse.json({ error: 'Reservation already processed' }, { status: 400 })
+    }
 
-      // THIS IS THE KEY - Update both total AND reserved
+    if (new Date() > new Date(reservation.expiresAt)) {
+      return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
+    }
+
+    // Update stock and reservation in transaction
+    await prisma.$transaction(async (tx) => {
+      // Update stock: decrease total and reserved
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -42,19 +48,18 @@ export async function POST(
         },
       })
 
+      // Update reservation status
       await tx.reservation.update({
         where: { id: reservationId },
         data: { status: 'confirmed' },
       })
-
-      return { success: true }
     })
 
-    return NextResponse.json(result)
+    console.log('✅ Confirm successful for reservation:', reservationId)
+
+    return NextResponse.json({ success: true })
   } catch (error: any) {
-    if (error.message === 'Expired') {
-      return NextResponse.json({ error: 'Reservation expired' }, { status: 410 })
-    }
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error('❌ Confirm error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
