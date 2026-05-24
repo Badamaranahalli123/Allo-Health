@@ -95,7 +95,6 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4">
-              {/* Added My Orders Link */}
               <Link href="/orders" className="hidden md:flex items-center gap-1 text-xs bg-white rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all border border-teal-100">
                 <span>📦</span>
                 <span className="text-teal-700">My Orders</span>
@@ -193,7 +192,7 @@ export default function Home() {
           {products.map((product, idx) => (
             <div key={product.id} className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-teal-100">
               
-              {/* Product Header with Allo Health styling */}
+              {/* Product Header */}
               <div className="relative bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-5">
                 <div className="absolute top-3 right-3 bg-teal-500/20 rounded-full px-2 py-1">
                   <span className="text-xs text-teal-300">Medical Grade</span>
@@ -307,7 +306,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer - Updated with correct links and year */}
+      {/* Footer */}
       <footer className="bg-gray-900 text-white mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
