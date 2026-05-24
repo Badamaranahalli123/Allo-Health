@@ -20,7 +20,7 @@ export async function POST(
         throw new Error('Cannot release')
       }
 
-      // ✅ FIX: Only decrease reserved, not total
+      // THIS IS THE KEY - Only decrease reserved, not total
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -29,7 +29,7 @@ export async function POST(
           },
         },
         data: {
-          reserved: { decrement: reservation.quantity },  // Release reserved stock
+          reserved: { decrement: reservation.quantity },
         },
       })
 
