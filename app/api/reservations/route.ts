@@ -68,14 +68,7 @@ export async function POST(req: NextRequest) {
       })
 
       // ✅ ONLY update reserved - NEVER touch total
-     const updatedStock = await tx.stock.update({
-  where: { id: stock.id },
-  data: {
-    reserved: {
-      increment: quantity,
-    },
-  },
-})
+       const updatedStock = await tx.stock.update({ where: { id: stock.id }, data: { reserved: stock.reserved + quantity }, })
 
       console.log('📊 After:', { total: updatedStock.total, reserved: updatedStock.reserved })
 
