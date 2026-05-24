@@ -10,6 +10,10 @@ export default function ReservationPage() {
   const [loading, setLoading] = useState(false)
   const [expired, setExpired] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [reservationStatus, setReservationStatus] = useState<string>('pending')
+  const [activityLog, setActivityLog] = useState<{status: string, time: string, message: string}[]>([
+    { status: 'pending', time: new Date().toLocaleTimeString(), message: 'Reservation created - Stock temporarily held' }
+  ])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -17,6 +21,12 @@ export default function ReservationPage() {
         if (prev <= 1) {
           clearInterval(interval)
           setExpired(true)
+          setReservationStatus('expired')
+          setActivityLog(prev => [...prev, {
+            status: 'expired',
+            time: new Date().toLocaleTimeString(),
+            message: 'Reservation expired - Stock released back to inventory'
+          }])
           return 0
         }
         return prev - 1
@@ -38,8 +48,20 @@ export default function ReservationPage() {
     const res = await fetch(`/api/reservations/${id}/confirm`, { method: 'POST' })
     if (res.status === 410) {
       alert('❌ Reservation expired')
+      setReservationStatus('expired')
+      setActivityLog(prev => [...prev, {
+        status: 'expired',
+        time: new Date().toLocaleTimeString(),
+        message: 'Attempted confirmation but reservation already expired'
+      }])
       router.push('/')
     } else if (res.ok) {
+      setReservationStatus('confirmed')
+      setActivityLog(prev => [...prev, {
+        status: 'confirmed',
+        time: new Date().toLocaleTimeString(),
+        message: 'Purchase confirmed - Stock permanently deducted (Total -1, Reserved -1)'
+      }])
       setShowSuccess(true)
       setTimeout(() => router.push('/'), 2000)
     }
@@ -49,6 +71,12 @@ export default function ReservationPage() {
   const cancel = async () => {
     setLoading(true)
     await fetch(`/api/reservations/${id}/release`, { method: 'POST' })
+    setReservationStatus('released')
+    setActivityLog(prev => [...prev, {
+      status: 'released',
+      time: new Date().toLocaleTimeString(),
+      message: 'Reservation cancelled - Stock released (Reserved -1)'
+    }])
     router.push('/')
     setLoading(false)
   }
@@ -116,6 +144,26 @@ export default function ReservationPage() {
           </div>
         </div>
 
+        {/* Activity Log - Shows State Transitions */}
+        <div style={styles.activityLog}>
+          <h4 style={styles.activityTitle}>📋 Reservation Activity Log</h4>
+          {activityLog.map((log, index) => (
+            <div key={index} style={styles.activityItem}>
+              <span style={{
+                ...styles.activityStatus,
+                ...(log.status === 'confirmed' ? styles.activityStatusConfirmed : {})
+              }}>
+                {log.status}
+              </span>
+              <span style={styles.activityTime}>{log.time}</span>
+              <span style={styles.activityMessage}>{log.message}</span>
+            </div>
+          ))}
+          <div style={styles.activityNote}>
+            📊 Stock Math: Total = Available + Reserved | On Confirm: Total -1, Reserved -1
+          </div>
+        </div>
+
         {/* Buttons */}
         <div style={styles.actions}>
           <button
@@ -164,7 +212,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '16px',
   },
   card: {
-    maxWidth: '480px',
+    maxWidth: '550px',
     width: '100%',
     backgroundColor: 'white',
     borderRadius: '24px',
@@ -192,7 +240,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '8px',
   },
   timerSection: {
-    padding: '32px 24px',
+    padding: '32px 24px 20px 24px',
     textAlign: 'center' as 'center',
   },
   circleContainer: {
@@ -238,6 +286,59 @@ const styles: { [key: string]: React.CSSProperties } = {
   warningText: {
     fontSize: '12px',
     color: '#92400e',
+  },
+  activityLog: {
+    margin: '0 24px 20px 24px',
+    padding: '16px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+  },
+  activityTitle: {
+    fontSize: '14px',
+    fontWeight: '600',
+    marginBottom: '12px',
+    color: '#1e293b',
+  },
+  activityItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '8px 0',
+    borderBottom: '1px solid #e2e8f0',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  activityStatus: {
+    fontSize: '10px',
+    fontWeight: '600',
+    padding: '2px 8px',
+    borderRadius: '20px',
+    backgroundColor: '#fef3c7',
+    color: '#d97706',
+    minWidth: '65px',
+    textAlign: 'center' as 'center',
+  },
+  activityStatusConfirmed: {
+    backgroundColor: '#d1fae5',
+    color: '#059669',
+  },
+  activityTime: {
+    fontSize: '10px',
+    color: '#94a3b8',
+    minWidth: '70px',
+  },
+  activityMessage: {
+    fontSize: '11px',
+    color: '#475569',
+    flex: 1,
+  },
+  activityNote: {
+    marginTop: '12px',
+    fontSize: '10px',
+    color: '#94a3b8',
+    textAlign: 'center' as 'center',
+    paddingTop: '8px',
+    borderTop: '1px dashed #cbd5e1',
   },
   actions: {
     padding: '0 24px 24px 24px',
