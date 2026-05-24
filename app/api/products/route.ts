@@ -28,6 +28,8 @@ export async function GET() {
       productsMap.get(stock.productId).warehouses.push({
         warehouseId: stock.warehouse.id,
         warehouseName: stock.warehouse.name,
+        totalStock: stock.total,
+        reservedStock: stock.reserved,
         availableStock: available,
       })
     })
@@ -35,7 +37,6 @@ export async function GET() {
     return NextResponse.json(Array.from(productsMap.values()))
   } catch (error) {
     console.error('Error fetching products:', error)
-    // Return empty array instead of failing
     return NextResponse.json([], { status: 200 })
   }
 }
