@@ -4,69 +4,79 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+// ✅ GET endpoint for Orders page
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const status = searchParams.get('status')
+    
+    const where = status ? { status: status as any } : {}
+    
+    const reservations = await prisma.reservation.findMany({
+      where,
+      include: {
+        product: true,
+        warehouse: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    
+    return NextResponse.json(reservations)
+  } catch (error) {
+    console.error('GET error:', error)
+    return NextResponse.json([], { status: 200 })
+  }
+}
+
+// ✅ POST endpoint for creating reservations
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { productId, warehouseId, quantity } = body
 
-    console.log('🔵 1. Received request:', { productId, warehouseId, quantity })
+    console.log('🔵 Reserve:', { productId, warehouseId, quantity })
 
     if (!productId || !warehouseId || !quantity) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
 
-    // Find the stock using findFirst (more reliable)
     const stock = await prisma.stock.findFirst({
-      where: {
-        productId: productId,
-        warehouseId: warehouseId,
-      },
+      where: { productId, warehouseId },
     })
-
-    console.log('🔵 2. Found stock:', stock)
 
     if (!stock) {
       return NextResponse.json({ error: 'Stock not found' }, { status: 404 })
     }
 
     const available = stock.total - stock.reserved
-    console.log('🔵 3. Available:', available, 'Requested:', quantity)
+    console.log('Stock before:', { total: stock.total, reserved: stock.reserved, available })
 
     if (available < quantity) {
       return NextResponse.json({ error: 'Not enough stock' }, { status: 409 })
     }
 
-    // Create reservation
-    const expiresAt = new Date()
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10)
+    const reservation = await prisma.$transaction(async (tx) => {
+      // Create reservation
+      const newReservation = await tx.reservation.create({
+        data: {
+          productId,
+          warehouseId,
+          quantity,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          status: 'pending',
+        },
+      })
 
-    const reservation = await prisma.reservation.create({
-      data: {
-        productId,
-        warehouseId,
-        quantity,
-        expiresAt,
-        status: 'pending',
-      },
+      // Update reserved stock
+      await tx.stock.update({
+        where: { id: stock.id },
+        data: { reserved: { increment: quantity } },
+      })
+
+      return newReservation
     })
 
-    console.log('🔵 4. Created reservation:', reservation.id)
-
-    // Update reserved stock - USING DIRECT UPDATE
-    const updatedStock = await prisma.$executeRaw`
-      UPDATE "Stock" 
-      SET reserved = reserved + ${quantity}
-      WHERE id = ${stock.id}
-    `
-
-    console.log('🔵 5. Stock updated, rows affected:', updatedStock)
-
-    // Verify the update
-    const verifyStock = await prisma.stock.findFirst({
-      where: { id: stock.id },
-    })
-    console.log('🔵 6. Verified stock:', verifyStock)
-
+    console.log('✅ Reservation created:', reservation.id)
     return NextResponse.json(reservation, { status: 201 })
   } catch (error: any) {
     console.error('❌ Error:', error)
