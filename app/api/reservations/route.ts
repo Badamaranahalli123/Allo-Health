@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// GET - Fetch reservations
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
@@ -28,7 +27,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Create reservation
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -41,7 +39,6 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Find the stock
       const stock = await tx.stock.findFirst({
         where: { productId, warehouseId },
       })
@@ -51,13 +48,12 @@ export async function POST(req: NextRequest) {
       }
 
       const available = stock.total - stock.reserved
-      console.log('📊 Current stock:', { id: stock.id, total: stock.total, reserved: stock.reserved, available })
+      console.log('📊 Before:', { total: stock.total, reserved: stock.reserved, available })
 
       if (available < quantity) {
         throw new Error('Not enough stock')
       }
 
-      // Create reservation
       const expiresAt = new Date()
       expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
@@ -71,15 +67,15 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // ✅ CRITICAL: ONLY increase reserved. TOTAL DOES NOT CHANGE
+      // ✅ ONLY update reserved - NEVER touch total
       const updatedStock = await tx.stock.update({
         where: { id: stock.id },
         data: { 
-          reserved: { increment: quantity }
+          reserved: stock.reserved + quantity
         },
       })
 
-      console.log('📊 After update:', { total: updatedStock.total, reserved: updatedStock.reserved })
+      console.log('📊 After:', { total: updatedStock.total, reserved: updatedStock.reserved })
 
       return reservation
     })
