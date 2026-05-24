@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -25,6 +28,7 @@ export async function POST(
         throw new Error('Expired')
       }
 
+      // ✅ FIX: Decrease both total AND reserved
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -33,8 +37,8 @@ export async function POST(
           },
         },
         data: {
-          total: { decrement: reservation.quantity },
-          reserved: { decrement: reservation.quantity },
+          total: { decrement: reservation.quantity },     // Decrease total stock
+          reserved: { decrement: reservation.quantity },  // Decrease reserved stock
         },
       })
 
