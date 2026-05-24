@@ -1,7 +1,7 @@
 # Allo Health - Inventory Reservation System
 
 ## Live Demo
-[Add your Vercel URL after deployment]
+https://allohealth-9arfhytbe-karthikabk2024-9616s-projects.vercel.app
 
 ## Features
 - ✅ Reserve stock for 10 minutes
