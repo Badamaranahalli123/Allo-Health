@@ -44,7 +44,7 @@ export async function POST(
     // Increment reserved stock
     await prisma.$executeRaw`
       UPDATE "Stock"
-      SET reserved = reserved + ${reservation.quantity}
+      SET reserved = reserved - ${reservation.quantity}
       WHERE "productId" = ${reservation.productId}
       AND "warehouseId" = ${reservation.warehouseId}
     `
