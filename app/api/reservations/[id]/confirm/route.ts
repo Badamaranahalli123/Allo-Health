@@ -37,11 +37,11 @@ export async function POST(
 
       // ✅ ONLY set reserved to 0, total stays the same
       await tx.stock.update({
-        where: { id: stock.id },
-        data: {
-          reserved: 0,  // ← Set reserved to 0 directly
-        },
-      })
+  where: { id: stock.id },
+  data: { 
+    reserved: { increment: quantity }  // ← This INCREMENTS reserved
+  },
+})
 
       await tx.reservation.update({
         where: { id: reservationId },
