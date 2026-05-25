@@ -11,15 +11,10 @@ export async function POST(
   try {
     const reservationId = params.id
 
-    console.log('🔵 Confirm request for:', reservationId)
-
-    await prisma.$transaction(async (tx) => {
-      // Get reservation
+    const result = await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: reservationId },
       })
-
-      console.log('📊 Reservation found:', reservation)
 
       if (!reservation) {
         throw new Error('Reservation not found')
@@ -33,9 +28,9 @@ export async function POST(
         throw new Error('Reservation expired')
       }
 
-      // ✅ Confirm purchase:
-      // total decreases because item is sold
-      // reserved decreases because hold is removed
+      // ✅ SOLD ITEM:
+      // total decreases permanently
+      // reserved decreases because hold removed
       await tx.stock.update({
         where: {
           productId_warehouseId: {
@@ -53,34 +48,30 @@ export async function POST(
         },
       })
 
-      // Update reservation status
       await tx.reservation.update({
         where: { id: reservationId },
-        data: { status: 'confirmed' },
+        data: {
+          status: 'confirmed',
+        },
       })
 
-      console.log('✅ Confirm successful')
+      return { success: true }
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json(result)
   } catch (error: any) {
     console.error('❌ Confirm error:', error)
 
-    let statusCode = 500
-
-    if (error.message === 'Reservation not found') {
-      statusCode = 404
-    } else if (
-      error.message === 'Reservation already processed'
-    ) {
-      statusCode = 400
-    } else if (error.message === 'Reservation expired') {
-      statusCode = 410
+    if (error.message === 'Reservation expired') {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 410 }
+      )
     }
 
     return NextResponse.json(
       { error: error.message },
-      { status: statusCode }
+      { status: 500 }
     )
   }
 }
