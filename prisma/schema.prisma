@@ -52,3 +52,11 @@ enum Status {
   confirmed
   released
 }
+
+model IdempotencyKey {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  endpoint   String
+  response   Json
+  createdAt  DateTime @default(now())
+}
