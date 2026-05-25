@@ -17,7 +17,9 @@ export async function GET(req: NextRequest) {
         product: true,
         warehouse: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
     return NextResponse.json(reservations)
@@ -30,6 +32,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+
     const { productId, warehouseId, quantity } = body
 
     console.log('🔵 Reserve request:', {
@@ -46,30 +49,43 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Find stock row
       const stock = await tx.stock.findFirst({
-        where: { productId, warehouseId },
+        where: {
+          productId,
+          warehouseId,
+        },
       })
 
       if (!stock) {
         throw new Error('Stock not found')
       }
 
-      const available = stock.total - stock.reserved
-
       console.log('📊 Before:', {
         total: stock.total,
         reserved: stock.reserved,
-        available,
+        available: stock.total - stock.reserved,
       })
 
-      if (available < quantity) {
-        throw new Error('Not enough stock')
-      }
-
+      // Reservation expires in 10 mins
       const expiresAt = new Date()
       expiresAt.setMinutes(expiresAt.getMinutes() + 10)
 
-      // Create reservation
+      // ✅ CONCURRENCY SAFE UPDATE
+      // Only reserve if enough stock exists
+      const updatedRows = await tx.$executeRaw`
+        UPDATE "Stock"
+        SET reserved = reserved + ${quantity}
+        WHERE id = ${stock.id}
+        AND (total - reserved) >= ${quantity}
+      `
+
+      // If no rows updated → stock unavailable
+      if (updatedRows === 0) {
+        throw new Error('Not enough stock')
+      }
+
+      // Create reservation AFTER successful stock hold
       const reservation = await tx.reservation.create({
         data: {
           productId,
@@ -80,31 +96,27 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // ✅ ONLY reserve stock temporarily
-      // total stays same
-      // reserved increases
-      const updatedStock = await tx.stock.update({
+      // Fetch updated stock for logging
+      const updatedStock = await tx.stock.findUnique({
         where: {
           id: stock.id,
-        },
-        data: {
-          reserved: {
-            increment: quantity,
-          },
         },
       })
 
       console.log('📊 After:', {
-        total: updatedStock.total,
-        reserved: updatedStock.reserved,
+        total: updatedStock?.total,
+        reserved: updatedStock?.reserved,
         available:
-          updatedStock.total - updatedStock.reserved,
+          (updatedStock?.total || 0) -
+          (updatedStock?.reserved || 0),
       })
 
       return reservation
     })
 
-    return NextResponse.json(result, { status: 201 })
+    return NextResponse.json(result, {
+      status: 201,
+    })
   } catch (error: any) {
     console.error('❌ Error:', error)
 
