@@ -47,16 +47,17 @@ model Reservation {
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
 }
 
-enum Status {
-  pending
-  confirmed
-  released
-}
-
 model IdempotencyKey {
   id         String   @id @default(cuid())
   key        String   @unique
   endpoint   String
   response   Json
   createdAt  DateTime @default(now())
+}
+
+
+enum Status {
+  pending
+  confirmed
+  released
 }
