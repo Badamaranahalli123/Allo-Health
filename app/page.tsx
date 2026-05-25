@@ -24,14 +24,27 @@ export default function Home() {
   const [reserving, setReserving] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data)
-        setLoading(false)
+  const loadData = async () => {
+    try {
+      // ✅ Cleanup expired reservations first
+      await fetch('/api/reservations/cleanup', {
+        method: 'POST',
       })
-      .catch(() => setLoading(false))
-  }, [])
+
+      // ✅ Then fetch fresh products
+      const res = await fetch('/api/products')
+      const data = await res.json()
+
+      setProducts(data)
+    } catch (error) {
+      console.error('Error loading products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  loadData()
+}, [])
 
   const handleReserve = async (productId: string, warehouseId: string) => {
     const key = `${productId}-${warehouseId}`
