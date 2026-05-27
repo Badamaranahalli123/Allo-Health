@@ -24,27 +24,27 @@ export default function Home() {
   const [reserving, setReserving] = useState<string | null>(null)
 
   useEffect(() => {
-  const loadData = async () => {
-    try {
-      // ✅ Cleanup expired reservations first
-      await fetch('/api/reservations/cleanup', {
-        method: 'POST',
-      })
+    const loadData = async () => {
+      try {
+        // Cleanup expired reservations first
+        await fetch('/api/reservations/cleanup', {
+          method: 'POST',
+        })
 
-      // ✅ Then fetch fresh products
-      const res = await fetch('/api/products')
-      const data = await res.json()
+        // Then fetch fresh products
+        const res = await fetch('/api/products')
+        const data = await res.json()
 
-      setProducts(data)
-    } catch (error) {
-      console.error('Error loading products:', error)
-    } finally {
-      setLoading(false)
+        setProducts(data)
+      } catch (error) {
+        console.error('Error loading products:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  loadData()
-}, [])
+    loadData()
+  }, [])
 
   const handleReserve = async (productId: string, warehouseId: string) => {
     const key = `${productId}-${warehouseId}`
@@ -69,6 +69,14 @@ export default function Home() {
       alert('Error creating reservation')
       setReserving(null)
     }
+  }
+
+  const getProductPrice = (productName: string) => {
+    if (productName.includes('Blood Pressure')) return { current: 2999, original: 4999, discount: 40 }
+    if (productName.includes('Oximeter')) return { current: 1499, original: 2499, discount: 40 }
+    if (productName.includes('Thermometer')) return { current: 499, original: 999, discount: 50 }
+    if (productName.includes('Nebulizer')) return { current: 2499, original: 3999, discount: 38 }
+    return { current: 999, original: 1499, discount: 33 }
   }
 
   if (loading) {
@@ -151,7 +159,9 @@ export default function Home() {
           </div>
         ) : (
           <div style={styles.productsGrid}>
-            {products.map((product) => (
+            {products.map((product) => {
+              const price = getProductPrice(product.name)
+              return (
               <div key={product.id} style={styles.productCard}>
                 <div style={styles.productHeader}>
                   <h3 style={styles.productName}>{product.name}</h3>
@@ -160,13 +170,20 @@ export default function Home() {
                 <div style={styles.productBody}>
                   {product.warehouses.map((wh) => (
                     <div key={wh.warehouseId} style={styles.warehouseCard}>
-                      {/* Warehouse Name First */}
+                      {/* Warehouse Name */}
                       <div style={styles.warehouseHeader}>
                         <span style={styles.warehouseIcon}>🏪</span>
                         <span style={styles.warehouseName}>{wh.warehouseName}</span>
                       </div>
                       
-                      {/* Stock Breakdown Box - Under warehouse name */}
+                      {/* Price Section */}
+                      <div style={styles.priceSection}>
+                        <span style={styles.currentPrice}>₹{price.current.toLocaleString()}</span>
+                        <span style={styles.originalPrice}>₹{price.original.toLocaleString()}</span>
+                        <span style={styles.discountBadge}>{price.discount}% OFF</span>
+                      </div>
+                      
+                      {/* Stock Breakdown Box */}
                       <div style={styles.stockInfo}>
                         <div style={styles.stockTitle}>📊 Stock Breakdown: Total = Available + Reserved</div>
                         <div style={styles.stockRow}>
@@ -203,7 +220,7 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>
@@ -449,10 +466,35 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '15px',
     color: '#1e293b',
   },
+  priceSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    margin: '12px 16px 8px 16px',
+    flexWrap: 'wrap' as 'wrap',
+  },
+  currentPrice: {
+    fontSize: '22px',
+    fontWeight: '700',
+    color: '#111827',
+  },
+  originalPrice: {
+    fontSize: '13px',
+    color: '#9ca3af',
+    textDecoration: 'line-through',
+  },
+  discountBadge: {
+    fontSize: '11px',
+    fontWeight: '600',
+    backgroundColor: '#dbeafe',
+    color: '#1e40af',
+    padding: '2px 8px',
+    borderRadius: '12px',
+  },
   stockInfo: {
     backgroundColor: '#f1f5f9',
     padding: '14px 16px',
-    margin: '12px 16px',
+    margin: '0 16px 12px 16px',
     borderRadius: '10px',
   },
   stockTitle: {
@@ -557,29 +599,4 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '16px',
     color: '#6b7280',
   },
-  priceSection: {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  marginBottom: '8px',
-  flexWrap: 'wrap' as 'wrap',
-},
-currentPrice: {
-  fontSize: '22px',
-  fontWeight: '700',
-  color: '#111827',
-},
-originalPrice: {
-  fontSize: '13px',
-  color: '#9ca3af',
-  textDecoration: 'line-through',
-},
-discountBadge: {
-  fontSize: '11px',
-  fontWeight: '600',
-  backgroundColor: '#dbeafe',
-  color: '#1e40af',
-  padding: '2px 8px',
-  borderRadius: '12px',
-},
 }
