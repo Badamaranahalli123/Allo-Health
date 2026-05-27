@@ -28,14 +28,15 @@ export async function GET() {
         })
       }
       
-      productsMap.get(stock.productId).warehouses.push({
-        warehouseId: stock.warehouse.id,
-        warehouseName: stock.warehouse.name,
-        totalStock: stock.total,        // ✅ This should be the DATABASE total (never changes)
-        reservedStock: stock.reserved,  // ✅ This is the reserved count
-        availableStock: available,       // ✅ This is total - reserved
-      })
-    })
+   productsMap.get(stock.productId).warehouses.push({
+  warehouseId: stock.warehouse.id,
+  warehouseName: stock.warehouse.name,
+  totalStock: stock.total,
+  reservedStock: stock.reserved,
+  availableStock: available,
+  price: stock.product.price,        // add this
+  originalPrice: stock.product.originalPrice, // add this
+})
 
     return NextResponse.json(Array.from(productsMap.values()))
   } catch (error) {
