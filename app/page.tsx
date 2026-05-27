@@ -557,4 +557,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '16px',
     color: '#6b7280',
   },
+  priceSection: {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  marginBottom: '8px',
+  flexWrap: 'wrap' as 'wrap',
+},
+currentPrice: {
+  fontSize: '22px',
+  fontWeight: '700',
+  color: '#111827',
+},
+originalPrice: {
+  fontSize: '13px',
+  color: '#9ca3af',
+  textDecoration: 'line-through',
+},
+discountBadge: {
+  fontSize: '11px',
+  fontWeight: '600',
+  backgroundColor: '#dbeafe',
+  color: '#1e40af',
+  padding: '2px 8px',
+  borderRadius: '12px',
+},
 }
